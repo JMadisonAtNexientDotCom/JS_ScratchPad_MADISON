@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head><meta charset="utf-8"> 
+<!-- AUTHOR: JMadison. -->
+<!--   10|       20|       30|       40|       50|       60|       70|       -->
+<!--5678901234567890123456789012345678901234567890123456789012345678901234567-->
+	
+		<!--angular library -->
+		<script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.3.14/angular.min.js"></script>
+		
+		<!-- Jquery needed to build query string. -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+
+		<!-- Async Spinners Service -->
+		<!--
+		<script src="https://raw.githubusercontent.com/JMadisonAtNexientDotCom/j/SPRING_REST_START_01/src/main/webapp/jsLib/node_modules/angular-spinners/src/spinner-service.js"></script>
+		<script src="https://raw.githubusercontent.com/JMadisonAtNexientDotCom/j/SPRING_REST_START_01/src/main/webapp/jsLib/node_modules/angular-spinners/src/spinner-directive.js"></script>
+		<script src="https://raw.githubusercontent.com/JMadisonAtNexientDotCom/j/SPRING_REST_START_01/src/main/webapp/jsLib/node_modules/angular-spinners/dist/angular-spinners.js"></script>
+		-->
+		<script src="jsLib/node_modules/angular-spinners/src/spinner-service.js"></script>
+		<script src="jsLib/node_modules/angular-spinners/src/spinner-directive.js"></script>
+		<script src="jsLib/node_modules/angular-spinners/dist/angular-spinners.js"></script>
+		
+		
+		
+
+		<!--
+		//If mimetype sent from server is text/plain, this type of link will fail.
+		<LINK REL=StyleSheet HREF="http://website.com/myStyle.css" TYPE="text/css">
+	  -->
+	
+    <title>SOME API TITLE</title>
+  
+  </head>
+  <body>
+		<div data-ng-app="myApp" ng-controller="myCtrl" data-ng-init="initVars();">
+		  <form name="myForm">
+			
+				Token:<input type="string" ng-model="token">
+				</br>
+				Submit:<button data-ng-click="callAPI();">QUERY!</button>
+				
+				<!-- spinner to let user know to wait for async call. -->
+				<spinner name="html5spinner">  
+						<div class="overlay"></div>
+						<div class="spinner">
+										<div class="double-bounce1"></div>
+										<div class="double-bounce2"></div>
+						</div>
+						<div class="please-wait">...WAIT!...</div>
+				</spinner>  
+				
+				
+				<div class="confirmationStatistics" ng-show="isCandidateConfirmationReturned">
+					first name:{{theResponseJsonTextWeWant.candidate.first_name}} </br>
+					last name: {{theResponseJsonTextWeWant.candidate.last_name}}</br>
+					skill:     {{theResponseJsonTextWeWant.skill_name}}</br>
+					token:     {{theResponseJsonTextWeWant.token}}</br>
+				</div>
+				
+				
+				<!-- This information will only be visible when in dev mode. -->
+				<div class="devModeStats" ng-show="inDevMode">
+					<p> THE QUERY MADE: </p>
+					<textarea readonly>{{ apiCallUsed }}</textarea>
+					
+					<p> THE RESULT OF QUERY: </p>
+					<textarea readonly>{{ theResponseJsonTextWeWant }}</textarea>
+				</div>
+				
+			</form>
+		</div>
+		
+		<script>
+		//Circumvents mime type problem when hosting style sheet on github:
+		$( document ).ready(function() {
+			$("<link/>", {
+					 rel: "import", //<--key to circumventing mimetype.
+					 type: "text/css",
+					 href: "https://raw.githubusercontent.com/JMadisonAtNexientDotCom/j/SPRING_REST_START_01/src/main/webapp/jsLib/css/components/loading_spinner.css"
+			}).appendTo("head");
+		});//EXECUTE WHEN DOCUMENT READY:
+		</script>
+
+		
+		<script>
+		
+		//http://www.w3schools.com/angular/tryit.asp?filename=try_ng_intro_controller
+		var app = angular.module('myApp', ['angularSpinners'])
+		app.controller('myCtrl', function($scope, $http, spinnerService) {
+		
+		  //Initialize variables this way so we don't clutter the ng-init list:
+			//http://stackoverflow.com/questions/23919847/declare-multiple-values-in-ng-init
+		  $scope.initVars = function(){
+			  $scope.isCandidateConfirmationReturned = false;
+			  $scope.inDevMode = false; //are we in development mode?
+				$scope.theResponseJsonTextWeWant='NO RESULTS';
+				$scope.apiCallUsed='NO CALL MADE';
+				$scope.token = "testing";
+	
+			};//FUNC:initVars:END
+			
+			function makeQueryString(){
+				//Build query string using J-QUERY:
+				//SOURCE: http://stackoverflow.com/questions/316781/
+				qs = $.param({ token: $scope.token
+					           }); //END PARAMS
+				return qs;
+			}//FUNC::END
+			
+			function  makeServiceURL(){
+				//url of rest-api responsible for making new ninja records using arguments:
+				//Break it up so refactoring is easier in future:
+				//appRoot="http://localhost:8080/Nexient-TestingService-0.0.1-SNAPSHOT";
+				//apiBase="v1/test";
+				//apiPath="confirm";
+				appRoot="http://ntsresponsemachine-madnamespace.rhcloud.com";
+				apiBase="api";
+				apiPath="v1/test/confirm";
+				
+				serviceURL = appRoot+"/"+apiBase+"/"+apiPath;
+				return serviceURL;
+			}//FUNC::END
+			
+			function makeFullyQualifiedAPICallURL(){
+				//Build query string using J-QUERY:
+				//SOURCE: http://stackoverflow.com/questions/316781/
+				qs         = makeQueryString();
+				serviceURL = makeServiceURL();
+				apiCallURL = serviceURL+"?"+qs;
+				return apiCallURL;
+			}//FUNC::END
+			
+			$scope.callAPI = function(){
+			
+				spinnerService.show('html5spinner');
+				apiCallURL = makeFullyQualifiedAPICallURL();
+				
+				//for debugging:
+				$scope.apiCallUsed = apiCallURL;
+
+				//Call the api, and once response is returned,
+				//call onResponded(response)
+				httpProxyGet(apiCallURL, onResponded);
+				
+			};//FUNC:callAPI:END
+			
+			//Cross site scripting http calls... Can't figure out how to
+			//circumvent it. So when in development, we will use fake data.
+			//TODO: figure out how to fake the async delay as well.
+			function httpProxyGet(apiURL, onSuccessFunction){
+				if(true===$scope.inDevMode){
+					mockData = getEmbeddedResponseTestData();
+					onSuccessFunction(mockData);
+				}else
+				if(false===$scope.inDevMode){
+					$http.get(apiURL).success(onSuccessFunction);
+				}else{
+					alert("strict equality failed for testing if inDevMode");
+				}
+			}//FUNC:httpProxyGet:END
+				 
+			function onResponded(response){
+				$scope.theResponseJsonTextWeWant = response;
+				spinnerService.hide('html5spinner');
+				$scope.isCandidateConfirmationReturned = true;
+			}//FUNC:onResponded:END
+			
+			//Gets mock response data for testing:
+			function getEmbeddedResponseTestData(){
+				var obj = JSON.parse(document.getElementById('embeddedJSON_01').innerHTML);
+				return obj;
+			}//FUNC::END
+
+		});//APP.CONTROLLER:END
+		</script>
+		
+		<script type="application/json" id="embeddedJSON_01">
+				{
+					"candidate": {
+						"first_name": "John",
+						"last_name": "Doe"
+					},
+					"skill_name": "Java Proficiency Evaluation",
+					"token": "testing"
+				}
+		</script>
+  </body>
+</html>
+<!--   10|       20|       30|       40|       50|       60|       70|       -->
+<!--5678901234567890123456789012345678901234567890123456789012345678901234567-->

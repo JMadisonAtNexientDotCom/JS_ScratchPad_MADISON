@@ -6,7 +6,7 @@ var PermuterClass = function(){
   
 
   //PRIVATE:
-	var _stack = new StackClass(); //permutation stack.
+	var _stack = new StackClass(5); //permutation stack.
 	var _has_does_path_exist_func     = false;
 	var _does_path_exist_func         = {}; //function to see if path exists.
 	var _does_path_exist_func_context = {};

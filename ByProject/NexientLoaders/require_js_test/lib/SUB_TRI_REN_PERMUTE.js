@@ -14,7 +14,24 @@ var SUB_TRI_REN_PERMUTE = function(ARG_sub_tri_renderer){
 	this.clear_linked_canvas = function(){
 		this.sub_tri_renderer.clear_linked_canvas();
 	};//
-
+	
+	//Vars for query_using_permutation_stack function:
+	//--------------------------------------------------+
+	//Optimizations to fight garbage collector,         |
+	//Store the output variable for function,           |
+	//And store ref to an empty object so we don't      |
+	//have to construct empty objects all the time      |
+	//either:                                           |
+	var _empty_obj    = {};//                           |
+	var _output_array = [false, _empty_obj]; //         |
+	var possible_output_tri = _empty_obj; //            |
+	var level = (-1);//                                 |
+	var address_index = 0;//                            |
+	var found = (-777); //<--negatives for false.       |
+	//--------------------------------------------------+
+	
+	//for when in debug mode:
+	var _is_debug = false;
 
   //PRIVATE:
 	var _permuter        = new PermuterClass();
@@ -85,70 +102,95 @@ var SUB_TRI_REN_PERMUTE = function(ARG_sub_tri_renderer){
 	this.query_using_permutation_stack = function(cuwad, stack){
 		
 		//error check:
-		if (typeof cuwad=== "undefined"){ console.log("SUB_TRI_BUILDER.JS :2423");}
-		if (typeof stack=== "undefined"){ console.log("SUB_TRI_BUILDER.JS :8829");}
+		if(_is_debug){
+			if (typeof cuwad=== "undefined"){ console.log("lajsflsf :2423");}
+			if (typeof stack=== "undefined"){ console.log("sfasfdsa :8829");}
+		}//
 		
-		var op = [false,{}];
-	  var level = (-1);
-		var address_index = 0;
-		var possible_output_tri = {};
-		var found = (-777); //<--negatives for false.
+		
+		
+		//Non-Optimized way: var op = [false,{}];
+		//Non-Optimized way: var possible_output_tri = {};
+		//Optimized way to battle garbage collector:
+		possible_output_tri = _empty_obj;
+		_output_array[0] = false;
+		_output_array[1] = _empty_obj;
+		
+	  level = (-1);
+		address_index = 0;
+		
+		found = (-777); //<--negatives for false.
 		while(true){
 			
 			//DEBUG:
-			if (typeof cuwad === "undefined"){ 
-			console.log("SUB_TRI_BUILDER.JS :sdfsfasfda");
-			}//
+			if(_is_debug){
+				if (typeof cuwad === "undefined"){ 
+				console.log("SUB_TRI_BUILDER.JS :sdfsfasfda");
+				}//
+			}//debug?
 			
 			//move to next coord on stack:
 			level++; //<--first used value should be ZERO.
 			if(level >= stack.length){break;}
 			
-			//set found to false each iteration.
-			//but AFTER the bail out. 
-			found = (-888);//FALSE
-			
 			//Tried making hack an intermediate set to null. Did not work.
 			//My next try? TWO LOCAL VARIABLES. And using numbers as booleans.
-			var HACK = 0; //hack hack
-			var ZERO = 0; //hack zero.
-			var ONE  = 1; //hack one.
+			//var HACK = 0; //hack hack
+			//var ZERO = 0; //hack zero.
+			//var ONE  = 1; //hack one.
 			
 			//See if our next "dot operator" (address_index) can be
 			//resolved to a node further down the quad tree:
 			address_index = stack[level];
+			
+			//(-1) used when we PRETEND the stack stops here.
+			//This is a special case, if found was true before, we return true,
+			//else, we return false:
+			//if stack === [0,0,0,-1,-1,-1]
+			//we pretend stack.length == 3, rather than 6.
+			//The same is true for [0,0,0,-1,#,#]
+			//The first case of finding a (-1) marks where we start ignoring
+			//slots of the stack.
+			if((-1)=== address_index){
+				break;
+			}//Pretend to not exist case.
+			
+			//set found to false each iteration.
+			//but AFTER the bail out. 
+			found = (-888);//FALSE
+			
 			if(0 === address_index){
 				
 				//debug:
 				//console.log("cuwad.has0 BEFORE ASSIGNMENT === " + cuwad.has0);
-				HACK = cuwad.has0 + 0; //<--Try +0 so HACK assigned correct value.
+				//HACK = cuwad.has0 + 0; //<--Try +0 so HACK assigned correct value.
 				//console.log("cuwad.has0 AFTER ASSIGNMENT === " + cuwad.has0);
 				
-				if(HACK >= ONE){//TRUE
+				if(cuwad.has0 >= 1){//TRUE
 				  possible_output_tri = cuwad.sub0.main; //BEFORE LINK-LIST JUMP!!!
 				  cuwad = cuwad.sub0; //<----------------//Linked list jump.
 					found=(200);//TRUE
 				}
 			}else
 		  if(1 === address_index){
-				HACK = cuwad.has1 + 0;
-				if(HACK >= ONE){//TRUE
+				//HACK = cuwad.has1 + 0;
+				if(cuwad.has1 >= 1){//TRUE
 				  possible_output_tri = cuwad.sub1.main; //BEFORE LINK-LIST JUMP!!!
 				  cuwad = cuwad.sub1; //<----------------//Linked list jump.
 					found=(201);//TRUE
 				}
 			}else
 			if(2 === address_index){
-				HACK = cuwad.has2 + 0;
-				if(HACK >= ONE){//TRUE
+				//HACK = cuwad.has2 + 0;
+				if(cuwad.has2 >= 1){//TRUE
 				  possible_output_tri = cuwad.sub2.main; //BEFORE LINKED-LIST JUMP!!!
 				  cuwad = cuwad.sub2; //<----------------//Linked list jump.
 				  found=(202);//TRUE
 			  }
 			}else
 			if(3 === address_index){
-				HACK = cuwad.has3 + 0;
-				if(HACK >= ONE){//TRUE
+				//HACK = cuwad.has3 + 0;
+				if(cuwad.has3 >= 1){//TRUE
 			   	possible_output_tri = cuwad.sub3.main; //BEFORE LINKED-LIST JUMP!!!
 				  cuwad = cuwad.sub3; //<----------------//Linked list jump.
 					found=(203);//TRUE
@@ -160,9 +202,11 @@ var SUB_TRI_REN_PERMUTE = function(ARG_sub_tri_renderer){
 			}
 			
 			//DEBUG:
-			if (typeof cuwad === "undefined"){ 
-			  console.log("SUB_TRI_BUILDER.JS :sdfsfasfda");
-			}//
+			if(_is_debug){
+				if (typeof cuwad === "undefined"){ 
+					console.log("SUB_TRI_BUILDER.JS :sdfsfasfda");
+				}//
+			}//debug.
 				
 		}//INF LOOP
 		
@@ -173,7 +217,10 @@ var SUB_TRI_REN_PERMUTE = function(ARG_sub_tri_renderer){
 		wasFound = (found >= 1);
 		if(wasFound){ 
 			//Create output:
-		  op = [true, possible_output_tri];
+		  //non-optimized way: op = [true, possible_output_tri];
+			//This way fights garbage collector:
+			_output_array[0] = true;
+			_output_array[1] = possible_output_tri;
 			
 			//Test that output is correct:
 		  if (typeof possible_output_tri === "undefined"){ 
@@ -182,7 +229,7 @@ var SUB_TRI_REN_PERMUTE = function(ARG_sub_tri_renderer){
 		}//was found? //-f-f-f-f-f-f-f-f-f-f-f-f-f-f-f-f-f-f-f-f-f-f-f-f-f-f-f-f-f-f
 		
 		//RETURN THE OUTPUT:
-		return op;
+		return _output_array;
 		
 	};//queryUsingPermutationStack
 

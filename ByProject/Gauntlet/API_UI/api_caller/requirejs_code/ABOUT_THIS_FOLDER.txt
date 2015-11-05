@@ -1,0 +1,26 @@
+
+Documentation Last Updated: 2015.11.03 (Nov3rd,Year2015)
+
+app_library:
+Holds applications that are build using classes from the class_library.
+
+class_library:
+Where you store all of the javascript "classes" that we will use together
+in larger solutions. Usually those larger solutions will be in the app_library,
+but require.js allows you to import "classes" individually into your
+html script blocks. So you can make use of class_library code without
+having to make an app in the app_library.
+
+"classes": I say "classes" because there is really no such thin as classes in
+           javascript. However, I am using require.js to get class functionality
+					 into the code base.
+
+linkers:
+       In require.js terms, this would be the .config folder.
+       I am calling it "linkers" because the
+       XXXXX_linker.js file you use depends on where the .html
+       file you are using lives.
+
+       All of our linkers import the SAME app_library and
+       class_library. The different linkers files only exist
+       so that paths are correctly resolved.

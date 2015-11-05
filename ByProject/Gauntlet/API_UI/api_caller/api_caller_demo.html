@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>api caller demo</title>
+		
+		<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.7/angular.min.js"></script>
+   
+    <!-- RRRRRRRRRRRRRRR---REQUIRE.JS::START---RRRRRRRRRRRRRRRRRRRRRRRRRRRRR -->
+    <!-- Using require.js to load libraries. Since import/include statements -->
+    <!-- Do NOT exist in javascript. The first tag is the require.js source. -->
+    <!-- The second tag is the library code we want to load using requir.js  -->
+    <script src="requirejs_code/require.js"></script>
+    <script src="requirejs_code/linkers/by_folder_name/api_caller.js"></script>
+    <!-- RRRRRRRRRRRRRRR---REQUIRE.JS::END---RRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR -->
+    
+  </head>
+<!-- AUTHOR: JMadison.  ON:20##.##.##_####AMPM                               -->
+<!-- TABSIZE: 2 Spaces.                                                      -->
+<!-- This header belongs BELOW the <head></head> declaration.                -->
+<!--   10|       20|       30|       40|       50|       60|       70|       -->
+<!--5678901234567890123456789012345678901234567890123456789012345678901234567-->
+
+  <body>
+   
+  <div id="angular_div"
+  data-ng-app="myApp" data-ng-controller="myCtrl" data-ng-init="VI();" >
+	
+	
+	  <button data-ng-click="onTestMasterRegistryClick();">Test master registry</button>
+	  <button data-ng-click="onClick();">Click Me!</button>
+
+  </div>
+   
+  <script>
+  var app = angular.module('myApp', []);
+  app.controller('myCtrl', function($scope, $http) {
+
+    //variable initialization:
+    $scope.VI = function(){
+        $scope.msg_for_user = "Insert Token:";
+				initializeLibraries();
+    };
+		
+		$scope.onTestMasterRegistryClick = function(){
+		  console.log("TEST: " + UI_PROXY_MASTER_REGISTRY );
+			UI_PROXY_MASTER_REGISTRY.initSelf();
+			UI_PROXY_MASTER_REGISTRY.unitTest();
+		};//FUNC::END
+		
+		$scope.onClick = function(){
+		  console.log("Button Clicked");
+		  $scope.callService();
+		};//FUNC::END
+		
+    $scope.callService = function()
+    {
+    
+      api = new ApiCallerClass($http); //<--inject $http into api caller.
+			console.log("api==[" + api);
+      
+      //Enter request building state. All
+      //configuration must be done within building block:
+      api.enter_request_building_block("GET");
+      
+			api.set_service_handle(api.doc.SUBMIT_TOKEN);
+			
+     
+			console.log("id===" + api.doc.SUBMIT_TOKEN.TOKEN_HASH.id);
+		  api.add_arg_handle(api.doc.SUBMIT_TOKEN.TOKEN_HASH);
+      api.add_arg_value ("abc");
+      
+      //Set the callbacks for success and failure:
+      api.set_on_success_function(onSuccess);
+      api.set_on_failure_function(onFailure);
+      
+      //Exit request building block.
+      api.exit_request_building_block("GET");
+      
+      //Proxy will make service call and then invoke
+      //the on_responded or on_fail callbacks when complete.
+      api.call();
+      
+    };//FUNC::END
+
+    function onSuccess(response){
+      $scope.instancedJSON_RESPONSE = response;
+     
+    }//FUNC::END
+    
+    function onFailure(response){
+     
+    }//FUNC::END
+		
+		function onLibraryLoad_success(){
+		  console.log("libraries loaded");
+		}//FUNC::END
+		
+		function onLibraryLoad_failure(){
+		  console.log("failed to load libraries");
+		}//FUNC::END
+		
+		function initializeLibraries(){
+		  requirejs(['app_rel_path/ALL_CLASSES'], 
+			          onLibraryLoad_success, 
+			          onLibraryLoad_failure);
+		}//FUNC::END
+    
+  });//CONTROLLER::END
+  </script>
+   
+  </body>
+</html>
+<!--   10|       20|       30|       40|       50|       60|       70|       -->
+<!--5678901234567890123456789012345678901234567890123456789012345678901234567-->

@@ -1,0 +1,45 @@
+
+NOTE: Instead of using config.js as the naming convention used in
+      Require.js, we are going to use the name XXXXX_linker.js
+
+      Because, we are loading the same configurations no matter
+      what ????_linker file we use. The different files only exist
+      to make sure paths to library code are resolved correctly.
+
+      This is something I am not happy about. And I find a bit annoying.
+      It was the best solution I could find for working with require.js.
+      I am not against talking about refactoring this later. But for now,
+      first priority is getting something working.
+
+Require.js config files are NOT aware of where they are invoked from.
+
+What this means:
+
+Say we have two .html files with these script tags:
+
+/abc/A.HTML:
+<script src="requirejs_code/require.js"></script>
+<script src="requirejs_code/config/config.js"></script>
+
+/xyz/Z.HTML:
+<script src="requirejs_code/require.js"></script>
+<script src="requirejs_code/config/config.js"></script>
+
+The config.js will be INTERPRETED DIFFERENTLY in A.HTML vs Z.HTML.
+This is because config.js is resolving it's relative file paths
+based on the folder of the HTML FILE IMPORTING IT.
+Relative urls in config.js are NOT resolved based on the folder
+config.js lives in.
+
+To solve this problem, we will make config files for each
+folder that needs to use require.js.
+
+Because of this constraint,
+Folder names must be unique. 
+Even when in different namespaces.
+
+Otherwise we would have file name collision.
+Example:  C:\a\project\a.html
+          C:\b\project\b.html
+Would both require using a file called "config_project";
+But "config_project" in this case could be referencing 1 of 2 folders.

@@ -1,0 +1,3 @@
+
+Classes found here are specific implementations of ProxyRouteAdapter
+They define how we are wired up to different mocks.

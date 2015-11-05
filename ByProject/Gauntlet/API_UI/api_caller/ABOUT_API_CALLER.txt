@@ -1,0 +1,23 @@
+
+
+PROBLEM IT SOLVES:
+The gauntlet ui will fail to launch because the apps are dependent
+on express.js running on a node.js server.
+
+
+WHAT IT DOES:
+1: Makes service calls.
+   The basic idea is to have an api_caller "class" that we will
+   be able to use to make service calls.
+2: Handles adapting/routing to mock,static, or live apis
+   Depending on the config. To allow for easy deployment.
+
+WHY WE NEED IT:
+When in testing mode, the api_caller is configured to use
+the mock_api. When in release mode, the api_caller is configured
+to use the ACTUAL live api of the nexient testing service.
+
+This will enable smooth switch from dev to release.
+Because none of the code within our HTML pages or angular apps
+will have to change.
+
